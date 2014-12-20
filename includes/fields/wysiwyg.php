@@ -96,6 +96,53 @@ class cfs_wysiwyg extends cfs_field
             var wysiwyg_count = 0;
 
             $(function() {
+
+                $.fn.init_wysiwyg = function() {
+                    this.each(function() {
+                        $(this).addClass('ready');
+
+                        // generate css id
+                        wysiwyg_count = wysiwyg_count + 1;
+                        var input_id = 'cfs_wysiwyg_' + wysiwyg_count;
+
+                        // set the wysiwyg css id
+                        $(this).find('.wysiwyg').attr('id', input_id);
+                        $(this).find('a.add_media').attr('data-editor', input_id);
+                        
+                        // if all editors on page are in 'text' tab, tinyMCE.settings will not be set
+                        if ('undefined' == typeof tinyMCE.settings) {
+                            // let's pull from tinyMCEPreInit for main content area (if it's set)
+                            if ('undefined' != typeof tinyMCEPreInit && 'undefined' != typeof tinyMCEPreInit.mceInit.content) {
+                                tinyMCE.settings = tinyMCEPreInit.mceInit.content;
+                            }
+                            // otherwise, setup basic settings object
+                            else {
+                                tinymce.settings = {
+                                    wpautop : true,
+                                    resize : 'vertical',
+                                    toolbar2 : 'code'
+                                };  
+                            }
+                        }
+                        
+                        // add the "code" button
+                        if ( tinyMCE.settings.toolbar2.indexOf('code') < 0) {
+                            tinyMCE.settings.toolbar2 += ',code';
+                        }
+
+                        // create wysiwyg
+                        wpautop = tinyMCE.settings.wpautop;
+                        resize = tinyMCE.settings.resize;
+
+                        tinyMCE.settings.wpautop = false;
+                        tinyMCE.settings.resize = 'vertical';
+                        tinyMCE.execCommand('mceAddEditor', false, input_id);
+                        tinyMCE.settings.wpautop = wpautop;
+                        tinyMCE.settings.resize = resize;
+                    });
+                };
+
+
                 $(document).on('cfs/ready', '.cfs_add_field', function() {
                     $('.cfs_wysiwyg:not(.ready)').init_wysiwyg();
                 });
@@ -108,50 +155,7 @@ class cfs_wysiwyg extends cfs_field
                 });
             });
 
-            $.fn.init_wysiwyg = function() {
-                this.each(function() {
-                    $(this).addClass('ready');
 
-                    // generate css id
-                    wysiwyg_count = wysiwyg_count + 1;
-                    var input_id = 'cfs_wysiwyg_' + wysiwyg_count;
-
-                    // set the wysiwyg css id
-                    $(this).find('.wysiwyg').attr('id', input_id);
-                    $(this).find('a.add_media').attr('data-editor', input_id);
-                    
-                    // if all editors on page are in 'text' tab, tinyMCE.settings will not be set
-                    if ('undefined' == typeof tinyMCE.settings) {
-                        // let's pull from tinyMCEPreInit for main content area (if it's set)
-                        if ('undefined' != typeof tinyMCEPreInit && 'undefined' != typeof tinyMCEPreInit.mceInit.content) {
-                            tinyMCE.settings = tinyMCEPreInit.mceInit.content;
-                        }
-                        // otherwise, setup basic settings object
-                        else {
-                            tinymce.settings = {
-                                wpautop : true,
-                                resize : 'vertical',
-                                toolbar2 : 'code'
-                            };  
-                        }
-                    }
-                    
-                    // add the "code" button
-                    if ( tinyMCE.settings.toolbar2.indexOf('code') < 0) {
-                        tinyMCE.settings.toolbar2 += ',code';
-                    }
-
-                    // create wysiwyg
-                    wpautop = tinyMCE.settings.wpautop;
-                    resize = tinyMCE.settings.resize;
-
-                    tinyMCE.settings.wpautop = false;
-                    tinyMCE.settings.resize = 'vertical';
-                    tinyMCE.execCommand('mceAddEditor', false, input_id);
-                    tinyMCE.settings.wpautop = wpautop;
-                    tinyMCE.settings.resize = resize;
-                });
-            };
 
             $(document).on('cfs/sortable_start', function(event, ui) {
                 tinyMCE.settings.wpautop = false;
